@@ -94,7 +94,10 @@ def show_queue(message):
     out = f"Размер очереди: {len(queue) - (0 if cur == -1 else cur)}\n"
     for i in range(cur, len(queue)):
         if i >= 0 and i < len(queue):
-            out += f'{i - cur + 1} - @{queue[i][1]}\n'
+            if queue[i] == (message.chat.id, message.from_user.username):
+                out += f'**{i - cur + 1} - @{queue[i][1]}**\n'
+            else:
+                out += f'{i - cur + 1} - @{queue[i][1]}\n'
     bot.send_message(message.chat.id, out)
     if (message.chat.id, message.from_user.username) in queue[cur:]:
         ind = queue.index((message.chat.id, message.from_user.username))
