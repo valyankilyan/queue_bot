@@ -95,7 +95,7 @@ def show_queue(message):
     for i in range(cur, len(queue)):
         if i >= 0 and i < len(queue):
             if queue[i] == (message.chat.id, message.from_user.username):
-                out += f'**{i - cur + 1} - @{queue[i][1]}**\n'
+                out += f'<b>{i - cur + 1} - @{queue[i][1]}</b>\n'
             else:
                 out += f'{i - cur + 1} - @{queue[i][1]}\n'
     bot.send_message(message.chat.id, out)
