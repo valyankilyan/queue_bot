@@ -96,12 +96,9 @@ def show_queue(message):
         if i >= 0 and i < len(queue):
             out += f'{i - cur + 1} - {queue[i][1]}\n'
     bot.send_message(message.chat.id, out)
-    if (message.chat.id, message.from_user.username) in queue:
+    if (message.chat.id, message.from_user.username) in queue[cur:]:
         ind = queue.index((message.chat.id, message.from_user.username))
-        if ind >= cur:
-            bot.send_message(message.chat.id, answers.your_turn.format(ind - cur + 1))
-        else:
-            bot.send_message(message.chat.id, answers.you_are_not_in_queue)
+        bot.send_message(message.chat.id, answers.your_turn.format(ind - cur + 1))        
     else:
         bot.send_message(message.chat.id, answers.you_are_not_in_queue)
 
