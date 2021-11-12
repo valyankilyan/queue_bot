@@ -1,15 +1,29 @@
 import answers
 import config
 import telebot
+import pickle
 from loggerconfig import getLogger
 import logging
 logger = getLogger(__name__)
 logger.info("Starting bot ")
 
+queue_file = 'queue.bak'
+cur_file = 'cur.bak'
 
 bot = telebot.TeleBot(config.token)
 queue = []
 cur = -1
+
+try:
+    queue = pickle.load(open(queue_file, 'rb')) or []
+    cur = pickle.load(open(cur_file, 'rb')) or -1
+except:
+    logger.error("there isn't queue or cur bak files")
+
+
+def save_data():
+    pickle.dump(queue, open(queue_file, "wb"))
+    pickle.dump(cur, open(cur_file, 'wb'))
 
 
 @bot.message_handler(commands=['start'])
@@ -43,8 +57,10 @@ def book_place_in_queue(message):
             f'{message.from_user.username} trying to book a place twice')
         return
     queue.append((message.chat.id, message.from_user.username))
+    save_data()
     if cur == -1: 
         cur+= 1
+        save_data()
     if cur == len(queue) - 1:
         say_them_to_go()
     else:
@@ -67,6 +83,7 @@ def end_lab_session(message):
         return
     bot.send_message(message.chat.id, answers.end_success)
     cur+= 1
+    save_data()
     say_them_to_go()
 
 
@@ -88,11 +105,17 @@ def show_queue(message):
     else:
         bot.send_message(message.chat.id, answers.you_are_not_in_queue)
 
+@bot.message_handler(commands=['showentirequeue'])
+def show_entire_queue(message):
+    logger.info(f"{message.from_user.username} asked for entire queue")
+    bot.send_message(message.chat.id, str(queue))
+
 @bot.message_handler(commands=['increase_cur'])
 def increase_cur(message):
     global cur
     if len(queue) > cur + 1:
         cur+= 1
+        save_data()
         logger.info(f'cur increased to {cur}')
         bot.send_message(message.chat.id, f'cur increased to {cur}')
     else:
@@ -107,6 +130,7 @@ def clear_queue(message):
     global cur
     queue = []
     cur = -1
+    save_data()
     bot.send_message(message.chat.id, "Очередь очищена")
 
 @bot.message_handler(func=lambda m: True)
@@ -118,5 +142,5 @@ def error(message):
     bot.reply_to(message, answers.error)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
     bot.polling(none_stop=True)
