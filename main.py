@@ -95,10 +95,10 @@ def show_queue(message):
     for i in range(cur, len(queue)):
         if i >= 0 and i < len(queue):
             if queue[i] == (message.chat.id, message.from_user.username):
-                out += f'<b>{i - cur + 1} - @{queue[i][1]}</b>\n'
+                out += f'**{i - cur + 1} - @{queue[i][1]}**\n'
             else:
                 out += f'{i - cur + 1} - @{queue[i][1]}\n'
-    bot.send_message(message.chat.id, out)
+    bot.send_message(message.chat.id, out, parse_mode="Markdown")
     if (message.chat.id, message.from_user.username) in queue[cur:]:
         ind = queue.index((message.chat.id, message.from_user.username))
         bot.send_message(message.chat.id, answers.your_turn.format(ind - cur + 1))        
