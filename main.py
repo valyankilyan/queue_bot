@@ -72,6 +72,8 @@ def end_lab_session(message):
 
 @bot.message_handler(commands=['showqueue'])
 def show_queue(message):
+    logger.info("someone asked for queue")
+    logger.info(f"Размер очереди: {len(queue) - (0 if cur == -1 else cur)}\n")
     out = f"Размер очереди: {len(queue) - (0 if cur == -1 else cur)}\n"
     for i in range(cur, cur + 3):
         if i >= 0 and i < len(queue):
@@ -111,7 +113,6 @@ def clear_queue(message):
 def casual_message(message):
     logger.info(f'{message.from_user.username} sent {message.text}')
     error(message)
-
 
 def error(message):
     bot.reply_to(message, answers.error)
