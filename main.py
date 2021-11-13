@@ -24,6 +24,11 @@ def save_data():
 def get_user_pair(message):
     return (message.chat.id, message.from_user.username)
 
+def swap(l, i, j):
+    save = l[i]
+    l[i] = l[j]
+    l[j] = save
+
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     logger.info(f'{message.from_user.username} sent {message.text}')
@@ -114,14 +119,26 @@ def get_out(message):
         bot.send_message(message.chat.id, answers.successfully_got_out)
     else:
         bot.send_message(message.chat.id, answers.you_are_not_in_queue)
+    save_data()
         
-# @bot.message_handler(commands=['pass'])
-# def pass_one(message):
-#     logger.info(f"{message.from_user.username} trying to pass.")
-#     if get_user_pair(message) in queue:
-#         index
-#     else:
-#         bot.send_message(answers.you_are_not_in_queue)
+@bot.message_handler(commands=['pass'])
+def pass_one(message):
+    logger.info(f"{message.from_user.username} trying to pass.")
+    if get_user_pair(message) in queue:
+        try:
+            ind = queue.index(get_user_pair(message))
+            if ind == len(queue) - 1:
+                bot.send_message(message.chat.id, f'Сорян, но ты и так на последнем месте..')
+            else:
+                bot.send_message(message.chat.id, f'okэy меняю тебя местами с @{queue[ind+1]}')
+                bot.send_message(queue[ind+1][0], f'@{queue[ind][1]} пропустил_а тебя вперед, радуйся')
+                swap(queue, ind, ind+1)
+                save_data()
+        except Exception as err:
+            bot.send_message(message.chat.id, f'Не, ну чел, щас ты реально меня сломать попытался.. У меня эксепшен вылетел блин.. Смотри {err=}, {type(err)=}')
+            
+    else:
+        bot.send_message(answers.you_are_not_in_queue)
 
 @bot.message_handler(commands=['showentirequeue'])
 def show_entire_queue(message):
