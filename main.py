@@ -25,6 +25,8 @@ def save_data():
     pickle.dump(queue, open(queue_file, "wb"))
     pickle.dump(cur, open(cur_file, 'wb'))
 
+def get_user_pair(message):
+    return (message.chat.id, message.from_user.username)
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -50,13 +52,13 @@ def say_them_to_go():
 @bot.message_handler(commands=['book'])
 def book_place_in_queue(message):
     global cur
-    if (message.chat.id, message.from_user.username) in queue[cur:]:
+    if get_user_pair(message) in queue[cur:]:
         bot.send_message(message.chat.id, answers.already_in_queue)
         show_queue(message)
         logger.info(
             f'{message.from_user.username} trying to book a place twice')
         return
-    queue.append((message.chat.id, message.from_user.username))
+    queue.append(get_user_pair(message))
     save_data()
     if cur == -1: 
         cur+= 1
@@ -94,16 +96,25 @@ def show_queue(message):
     out = f"Размер очереди: {len(queue) - (0 if cur == -1 else cur)}\n"
     for i in range(cur, len(queue)):
         if i >= 0 and i < len(queue):
-            if queue[i] == (message.chat.id, message.from_user.username):
+            if queue[i] == get_user_pair(message):
                 out += f'*>{i - cur + 1} - @{queue[i][1]}*\n'
             else:
                 out += f'{i - cur + 1} - @{queue[i][1]}\n'
     bot.send_message(message.chat.id, out, parse_mode="Markdown")
-    if (message.chat.id, message.from_user.username) in queue[cur:]:
-        ind = queue.index((message.chat.id, message.from_user.username))
+    if get_user_pair(message) in queue[cur:]:
+        ind = queue.index(get_user_pair(message))
         bot.send_message(message.chat.id, answers.your_turn.format(ind - cur + 1))        
     else:
         bot.send_message(message.chat.id, answers.you_are_not_in_queue)
+        
+@bot.message_handler(commands=['getout'])
+def get_out(message):
+    logger.info(f"{message.from_user.username} decided to get out from this crappy queue.")
+    if get_user_pair(message) in queue:
+        queue.remove(get_user_pair(message))
+        bot.send_message(message.chat.id, answers.successfully_got_out)
+    else:
+        bot.send_message(answers.you_are_not_in_queue)
 
 @bot.message_handler(commands=['showentirequeue'])
 def show_entire_queue(message):
