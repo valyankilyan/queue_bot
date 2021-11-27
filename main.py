@@ -44,10 +44,10 @@ def send_help(message):
 def say_them_to_go():
     if len(queue) > 0:
         bot.send_message(queue[0][0], answers.it_s_your_turn)
-        logger.info(f'{queue[0][1]} is now passing the lab')
+        logger.info(f'{queue[0][1]} is next')
         for i in range(1, min(len(queue), 4)):
             bot.send_message(queue[i][0], answers.you_are_next)
-            bot.send_message(queue[i][0], f'Твоё место в очереди {i}')
+            bot.send_message(queue[i][0], f'Твоё место в очереди {i + 1}')
             logger.info(f'{queue[i][1]} is next')
 
 
