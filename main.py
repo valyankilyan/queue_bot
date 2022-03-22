@@ -1,11 +1,11 @@
+from cmath import log10
 import answers
 import config
 import telebot
 import pickle
 from loggerconfig import getLogger
-import logging
-logger = getLogger(__name__)
-logger.info("Starting bot ")
+log = getLogger(__name__)
+log.info("Starting bot ")
 
 queue_file = 'queue.bak'
 
@@ -15,7 +15,7 @@ queue = []
 try:
     queue = pickle.load(open(queue_file, 'rb')) or []    
 except:
-    logger.error("there isn't queue or cur bak files")
+    log.error("there isn't queue or cur bak files")
 
 
 def save_data():
@@ -31,24 +31,24 @@ def swap(l, i, j):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    logger.info(f'{message.from_user.username} sent {message.text}')
+    log.info(f'{message.from_user.username} sent {message.text}')
     bot.send_message(message.chat.id, answers.start)
 
 
 @bot.message_handler(commands=['help'])
 def send_help(message):
-    logger.info(f'{message.from_user.username} sent {message.text}')
+    log.info(f'{message.from_user.username} sent {message.text}')
     bot.send_message(message.chat.id, answers._help)
 
 
 def say_them_to_go():
     if len(queue) > 0:
         bot.send_message(queue[0][0], answers.it_s_your_turn)
-        logger.info(f'{queue[0][1]} is next')
+        log.info(f'{queue[0][1]} is next')
         for i in range(1, min(len(queue), 4)):
             bot.send_message(queue[i][0], answers.you_are_next)
             bot.send_message(queue[i][0], f'Твоё место в очереди {i + 1}')
-            logger.info(f'{queue[i][1]} is next')
+            log.info(f'{queue[i][1]} is next')
 
 
 @bot.message_handler(commands=['book'])
@@ -56,7 +56,7 @@ def book_place_in_queue(message):
     if get_user_pair(message) in queue:
         bot.send_message(message.chat.id, answers.already_in_queue)
         show_queue(message)
-        logger.info(
+        log.info(
             f'{message.from_user.username} trying to book a place twice')
         return
     queue.append(get_user_pair(message))
@@ -67,7 +67,7 @@ def book_place_in_queue(message):
         bot.send_message(message.chat.id, answers.book_success)
         # bot.send_message(message.chat.id, f"Ты на {queue.index(get_user_pair(message)) + 1} месте.")
         show_queue(message)
-    logger.info(f'{message.from_user.username} booked a place in queue')
+    log.info(f'{message.from_user.username} booked a place in queue')
 
 
 @bot.message_handler(commands=['endsession'])
@@ -78,7 +78,7 @@ def end_lab_session(message):
         return
     if queue[0][0] != message.chat.id:
         bot.send_message(message.chat.id, answers.it_s_not_your_turn)
-        logger.info(
+        log.info(
             f'{message.from_user.username} trying to end someones turn')
         return
     queue.remove(get_user_pair(message))
@@ -89,8 +89,8 @@ def end_lab_session(message):
 
 @bot.message_handler(commands=['showqueue'])
 def show_queue(message):
-    logger.info(f"{message.from_user.username} asked for queue")
-    # logger.info(f"Размер очереди: {len(queue)}\n")
+    log.info(f"{message.from_user.username} asked for queue")
+    # log.info(f"Размер очереди: {len(queue)}\n")
     out = f"Размер очереди: {len(queue)}\n"
     for i in range(len(queue)):
         if i >= 0 and i < len(queue):
@@ -98,7 +98,7 @@ def show_queue(message):
                 out += f'>{i + 1} - @{queue[i][1]}\n'
             else:
                 out += f'{i + 1} - @{queue[i][1]}\n'
-    logger.info(f"sending queue: {out}")
+    log.info(f"sending queue: {out}")
     bot.send_message(message.chat.id, out)
     if get_user_pair(message) in queue:
         ind = queue.index(get_user_pair(message))
@@ -108,7 +108,7 @@ def show_queue(message):
         
 @bot.message_handler(commands=['getout'])
 def get_out(message):
-    logger.info(f"{message.from_user.username} decided to get out from this crappy queue.")
+    log.info(f"{message.from_user.username} decided to get out from this crappy queue.")
     if get_user_pair(message) in queue:
         if queue.index(get_user_pair(message)) == 0:
             end_lab_session(message)
@@ -116,7 +116,7 @@ def get_out(message):
             try:
                 queue.remove(get_user_pair(message))
             except Exception as err:
-                logger.error(f"Why did that happen...")
+                log.error(f"Why did that happen...")
                 bot.send_message(message.chat.id, f'Не, ну чел, щас ты реально меня сломать попытался.. У меня эксепшен вылетел блин.. Смотри {err=}, {type(err)=}')
             bot.send_message(message.chat.id, answers.successfully_got_out)
     else:
@@ -125,7 +125,7 @@ def get_out(message):
         
 @bot.message_handler(commands=['pass'])
 def pass_one(message):
-    logger.info(f"{message.from_user.username} trying to pass.")
+    log.info(f"{message.from_user.username} trying to pass.")
     if get_user_pair(message) in queue:
         try:
             ind = queue.index(get_user_pair(message))
@@ -141,28 +141,10 @@ def pass_one(message):
             
     else:
         bot.send_message(answers.you_are_not_in_queue)
-
-@bot.message_handler(commands=['showentirequeue'])
-def show_entire_queue(message):
-    logger.info(f"{message.from_user.username} asked for entire queue")
-    bot.send_message(message.chat.id, str(queue))
-
-# @bot.message_handler(commands=['increase_cur'])
-# def increase_cur(message):
-#     global cur
-#     if len(queue) > cur + 1:
-#         cur+= 1
-#         save_data()
-#         logger.info(f'cur increased to {cur}')
-#         bot.send_message(message.chat.id, f'cur increased to {cur}')
-#     else:
-#         logger.info(f'cur cannot be increased cur = {cur}, len(queue) = {len(queue)}')
-#         bot.send_message(message.chat.id, f'cur cannot be increased cur = {cur}, len(queue) = {len(queue)}')
-#     show_queue(message)
     
 @bot.message_handler(commands=['clearqueue'])
 def clear_queue(message):
-    logger.info(f"Data was cleared by {message.from_user.username}")
+    log.info(f"Data was cleared by {message.from_user.username}")
     global queue    
     queue = []    
     save_data()
@@ -170,7 +152,7 @@ def clear_queue(message):
 
 @bot.message_handler(func=lambda m: True)
 def casual_message(message):
-    logger.info(f'{message.from_user.username} sent {message.text}')
+    log.info(f'{message.from_user.username} sent {message.text}')
     error(message)
 
 def error(message):
