@@ -112,12 +112,13 @@ def get_out(message):
     if get_user_pair(message) in queue:
         if queue.index(get_user_pair(message)) == 0:
             end_lab_session(message)
-        try:
-            queue.remove(get_user_pair(message))
-        except Exception as err:
-            logger.error(f"Why did that happen...")
-            bot.send_message(message.chat.id, f'Не, ну чел, щас ты реально меня сломать попытался.. У меня эксепшен вылетел блин.. Смотри {err=}, {type(err)=}')
-        bot.send_message(message.chat.id, answers.successfully_got_out)
+        else:
+            try:
+                queue.remove(get_user_pair(message))
+            except Exception as err:
+                logger.error(f"Why did that happen...")
+                bot.send_message(message.chat.id, f'Не, ну чел, щас ты реально меня сломать попытался.. У меня эксепшен вылетел блин.. Смотри {err=}, {type(err)=}')
+            bot.send_message(message.chat.id, answers.successfully_got_out)
     else:
         bot.send_message(message.chat.id, answers.you_are_not_in_queue)
     save_data()
