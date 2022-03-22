@@ -89,16 +89,17 @@ def end_lab_session(message):
 
 @bot.message_handler(commands=['showqueue'])
 def show_queue(message):
-    logger.info("someone asked for queue")
-    logger.info(f"Размер очереди: {len(queue)}\n")
+    logger.info(f"{message.from_user.username} asked for queue")
+    # logger.info(f"Размер очереди: {len(queue)}\n")
     out = f"Размер очереди: {len(queue)}\n"
     for i in range(len(queue)):
         if i >= 0 and i < len(queue):
             if queue[i] == get_user_pair(message):
-                out += f'*>{i + 1} - @{queue[i][1]}*\n'
+                out += f'>{i + 1} - @{queue[i][1]}\n'
             else:
                 out += f'{i + 1} - @{queue[i][1]}\n'
-    bot.send_message(message.chat.id, out, parse_mode="Markdown")
+    logger.info(f"sending queue: {out}")
+    bot.send_message(message.chat.id, out)
     if get_user_pair(message) in queue:
         ind = queue.index(get_user_pair(message))
         bot.send_message(message.chat.id, answers.your_turn.format(ind + 1))        
